@@ -1,87 +1,38 @@
-"use client";
+import { MapPin, Route, Brain, Truck, Link2, BellRing } from "lucide-react";
 
 const features = [
-  {
-    icon: "📍",
-    title: "Real-Time GPS Tracking",
-    desc: "Sub-meter accuracy with 10-second ping intervals and automatic dead reckoning prediction.",
-  },
-  {
-    icon: "🧠",
-    title: "AI Disruption Detection",
-    desc: "ML-powered anomaly detection for speed drops, route deviations, and unusual stop patterns.",
-  },
-  {
-    icon: "🛤️",
-    title: "Dynamic Route Optimization",
-    desc: "Graph-based routing with live reroute recommendations based on real-time conditions.",
-  },
-  {
-    icon: "🌦️",
-    title: "Weather-Aware Routing",
-    desc: "Per-segment weather risk scoring with automatic ETA adjustment for adverse conditions.",
-  },
-  {
-    icon: "📱",
-    title: "Barcode & QR Scanning",
-    desc: "Scan events for delivery confirmation, chain of custody tracking, and proof of delivery.",
-  },
-  {
-    icon: "📡",
-    title: "Control Tower Dashboard",
-    desc: "Unified real-time view for all active drivers, shipments, alerts, and risk assessments.",
-  },
+  { icon: MapPin, title: "Real-Time Tracking", desc: "10-second GPS intervals with dead reckoning prediction and offline buffering." },
+  { icon: Route, title: "Route Optimization", desc: "OSRM-powered routing with 30km segment analysis and deviation detection." },
+  { icon: Brain, title: "AI Delay Analysis", desc: "ML-powered speed and pattern analysis for proactive delay prediction." },
+  { icon: Truck, title: "Fleet Management", desc: "Unified driver dashboard with status tracking and network monitoring." },
+  { icon: Link2, title: "Supply Chain Visibility", desc: "End-to-end shipment tracking from origin to destination across carriers." },
+  { icon: BellRing, title: "Smart Alerts", desc: "Multi-tier severity alerts with weather, traffic, and geofence triggers." },
 ];
 
 export default function FeaturesGrid() {
   return (
-    <section className="section" style={{ background: "var(--color-bg-surface)" }}>
-      <div className="container-lg">
-        <div className="section-header reveal">
-          <div className="label-tag">Capabilities</div>
-          <h2>Built for the Complexity of Modern Logistics</h2>
-          <div className="thin-rule" />
-          <p>
-            Every feature designed for operations teams who need precision,
-            speed, and reliability.
+    <section className="py-20 sm:py-28">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16 reveal">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
+            Everything Your Operations Team Needs
+          </h2>
+          <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">
+            Integrated capabilities that transform reactive logistics into proactive intelligence.
           </p>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-            gap: 20,
-          }}
-        >
-          {features.map((f, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((f) => (
             <div
-              key={i}
-              className={`card reveal reveal-delay-${(i % 3) + 1}`}
-              style={{ cursor: "default" }}
+              key={f.title}
+              className="reveal group rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 hover-lift cursor-default"
             >
-              <div style={{ fontSize: 28, marginBottom: 18, opacity: 0.85 }}>
-                {f.icon}
+              <div className="w-10 h-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center mb-4">
+                <f.icon className="w-5 h-5 text-[var(--accent)]" />
               </div>
-              <h3
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  fontSize: 20,
-                  fontWeight: 400,
-                  marginBottom: 10,
-                }}
-              >
-                {f.title}
-              </h3>
-              <p
-                style={{
-                  color: "var(--color-text-secondary)",
-                  fontSize: 14,
-                  lineHeight: 1.75,
-                }}
-              >
-                {f.desc}
-              </p>
+              <h3 className="text-base font-semibold mb-2 text-[var(--text)]">{f.title}</h3>
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>

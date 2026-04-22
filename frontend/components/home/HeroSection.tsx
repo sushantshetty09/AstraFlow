@@ -1,181 +1,60 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-const HeroMap = dynamic(() => import("@/components/HeroMap"), { ssr: false });
-
-function useTypewriter(phrases: string[], speed = 70, pause = 2200) {
-  const [text, setText] = useState("");
-  const [phraseIdx, setPhraseIdx] = useState(0);
-  const [charIdx, setCharIdx] = useState(0);
-  const [deleting, setDeleting] = useState(false);
-
-  useEffect(() => {
-    const current = phrases[phraseIdx];
-    const timeout = deleting ? speed / 2 : speed;
-
-    if (!deleting && charIdx === current.length) {
-      const t = setTimeout(() => setDeleting(true), pause);
-      return () => clearTimeout(t);
-    }
-    if (deleting && charIdx === 0) {
-      setDeleting(false);
-      setPhraseIdx((i) => (i + 1) % phrases.length);
-      return;
-    }
-    const t = setTimeout(() => {
-      setCharIdx((c) => c + (deleting ? -1 : 1));
-      setText(current.substring(0, charIdx + (deleting ? -1 : 1)));
-    }, timeout);
-    return () => clearTimeout(t);
-  }, [charIdx, deleting, phraseIdx, phrases, speed, pause]);
-
-  return text;
-}
 
 export default function HeroSection() {
-  const typed = useTypewriter([
-    "Predict the Rest.",
-    "Prevent Delays.",
-    "Protect Revenue.",
-  ]);
-  const parallaxRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = parallaxRef.current;
-    if (!el) return;
-    const h = () => {
-      const y = window.scrollY;
-      el.style.transform = `translateY(${y * 0.35}px) scale(${1 + y * 0.0002})`;
-    };
-    window.addEventListener("scroll", h, { passive: true });
-    return () => window.removeEventListener("scroll", h);
-  }, []);
-
   return (
-    <section
-      style={{
-        position: "relative",
-        height: "100vh",
-        minHeight: 600,
-        overflow: "hidden",
-        display: "flex",
-        alignItems: "center",
-      }}
-    >
-      {/* Parallax map background */}
-      <div
-        ref={parallaxRef}
-        style={{
-          position: "absolute",
-          inset: "-10%",
-          zIndex: 0,
-          willChange: "transform",
-        }}
-      >
-        <HeroMap />
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+      {/* Subtle route SVG background */}
+      <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
+        <svg className="w-full h-full" viewBox="0 0 1200 600" fill="none">
+          <path d="M0 400 Q200 200 400 350 T800 250 T1200 300" stroke="currentColor" strokeWidth="2" strokeDasharray="8 6" className="route-dash" />
+          <path d="M0 300 Q300 100 600 280 T1200 200" stroke="currentColor" strokeWidth="1.5" strokeDasharray="6 8" className="route-dash" style={{ animationDelay: "0.5s" }} />
+          <path d="M0 500 Q400 300 700 400 T1200 350" stroke="currentColor" strokeWidth="1" strokeDasharray="4 8" className="route-dash" style={{ animationDelay: "1s" }} />
+          {/* Nodes */}
+          <circle cx="200" cy="320" r="4" fill="currentColor" opacity="0.3" />
+          <circle cx="500" cy="280" r="4" fill="currentColor" opacity="0.3" />
+          <circle cx="800" cy="250" r="4" fill="currentColor" opacity="0.3" />
+          <circle cx="1050" cy="290" r="4" fill="currentColor" opacity="0.3" />
+        </svg>
       </div>
 
       {/* Gradient overlay */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 1,
-          background:
-            "linear-gradient(to bottom, rgba(10,13,20,0.45) 0%, rgba(10,13,20,0.75) 50%, rgba(10,13,20,1) 100%)",
-        }}
-      />
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[var(--bg)] to-transparent" />
 
-      {/* Decorative glow */}
-      <div
-        style={{
-          position: "absolute",
-          top: "30%",
-          left: "15%",
-          width: 500,
-          height: 400,
-          background: "var(--gradient-glow-warm)",
-          borderRadius: "50%",
-          filter: "blur(60px)",
-          zIndex: 1,
-        }}
-      />
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="max-w-3xl">
+          <div className="animate-fade-in">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] text-xs font-medium text-[var(--text-secondary)] mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)] animate-pulse" />
+              Live platform — tracking shipments now
+            </div>
+          </div>
 
-      {/* Content — intentionally left-aligned for asymmetry */}
-      <div
-        className="container-lg"
-        style={{
-          position: "relative",
-          zIndex: 2,
-          paddingTop: 80,
-        }}
-      >
-        <div style={{ maxWidth: 680 }}>
-          <div className="label-tag reveal">Supply Chain Intelligence</div>
-
-          <h1
-            className="reveal reveal-delay-1"
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "clamp(36px, 6.5vw, 68px)",
-              fontWeight: 400,
-              lineHeight: 1.08,
-              marginBottom: 12,
-            }}
-          >
-            Track Everything.
-          </h1>
-          <h1
-            className="reveal reveal-delay-2"
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "clamp(36px, 6.5vw, 68px)",
-              fontWeight: 400,
-              fontStyle: "italic",
-              lineHeight: 1.08,
-              marginBottom: 28,
-              color: "var(--color-primary)",
-            }}
-          >
-            {typed}
-            <span className="typewriter-cursor" />
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6 animate-fade-in animate-fade-in-delay-1">
+            Logistics Intelligence,{" "}
+            <span className="text-[var(--accent)]">Redefined.</span>
           </h1>
 
-          <div className="thin-rule reveal reveal-delay-3" />
-
-          <p
-            className="reveal reveal-delay-3"
-            style={{
-              fontSize: 17,
-              color: "var(--color-text-secondary)",
-              lineHeight: 1.75,
-              maxWidth: 480,
-              marginBottom: 40,
-            }}
-          >
-            Astra Flow gives logistics teams real-time visibility,
-            AI&#8209;powered disruption detection, and proactive rerouting
-            — before delays happen.
+          <p className="text-lg sm:text-xl text-[var(--text-secondary)] max-w-xl mb-8 leading-relaxed animate-fade-in animate-fade-in-delay-2">
+            Real-time GPS tracking, AI-powered disruption detection, and proactive rerouting — all in a single control tower built for modern supply chains.
           </p>
 
-          <div
-            className="reveal reveal-delay-4"
-            style={{ display: "flex", gap: 14, flexWrap: "wrap" }}
-          >
+          <div className="flex flex-wrap gap-4 animate-fade-in animate-fade-in-delay-3">
+            <Link
+              href="/contact"
+              className="inline-flex items-center px-6 py-3 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm transition-colors"
+            >
+              Get Started
+              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
             <Link
               href="/dashboard"
-              className="btn btn-primary magnetic-btn"
-              style={{ fontSize: 14, padding: "13px 28px" }}
+              className="inline-flex items-center px-6 py-3 rounded-lg border border-[var(--border)] hover:bg-[var(--surface)] text-[var(--text)] font-semibold text-sm transition-colors"
             >
-              Enter Control Tower →
+              View Dashboard
             </Link>
-            <button
-              className="btn btn-secondary magnetic-btn"
-              style={{ fontSize: 14, padding: "13px 28px" }}
-            >
-              Watch How It Works
-            </button>
           </div>
         </div>
       </div>

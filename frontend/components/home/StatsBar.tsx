@@ -1,65 +1,43 @@
 "use client";
-import AnimatedCounter from "@/components/ui/AnimatedCounter";
+import { useEffect, useRef, useState } from "react";
 
 const stats = [
-  { label: "Active Shipments", value: 12400, suffix: "+" },
-  { label: "Alert Response", value: 340, suffix: "ms" },
-  { label: "On-Time Rate", value: 94.7, suffix: "%", decimals: 1 },
-  { label: "Countries", value: 63, suffix: "" },
+  { value: 10000000, label: "Shipments Tracked", suffix: "+", display: "10M+" },
+  { value: 98.7, label: "On-Time Rate", suffix: "%", display: "98.7%" },
+  { value: 140, label: "Countries", suffix: "+", display: "140+" },
+  { value: 2, label: "Detection Latency", suffix: "s", prefix: "<", display: "<2s" },
 ];
+
+function AnimatedStat({ display, label }: { display: string; label: string }) {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      { threshold: 0.5 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="text-center">
+      <div className={`text-2xl sm:text-3xl font-extrabold text-[var(--text)] transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
+        {display}
+      </div>
+      <div className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 font-medium">{label}</div>
+    </div>
+  );
+}
 
 export default function StatsBar() {
   return (
-    <section
-      style={{
-        background: "var(--color-bg-surface)",
-        borderTop: "1px solid var(--color-border-base)",
-        borderBottom: "1px solid var(--color-border-base)",
-        padding: "52px 0",
-      }}
-    >
-      <div className="container-lg">
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-            gap: 32,
-          }}
-        >
-          {stats.map((s, i) => (
-            <div
-              key={i}
-              className={`reveal reveal-delay-${i + 1}`}
-              style={{ textAlign: "center" }}
-            >
-              <div
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  fontSize: 38,
-                  fontWeight: 400,
-                  marginBottom: 6,
-                  color: "var(--color-text-primary)",
-                }}
-              >
-                <AnimatedCounter
-                  value={s.value}
-                  suffix={s.suffix}
-                  decimals={s.decimals || 0}
-                />
-              </div>
-              <div
-                style={{
-                  fontSize: 10,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "var(--color-text-muted)",
-                  fontFamily: "var(--font-data)",
-                  fontWeight: 500,
-                }}
-              >
-                {s.label}
-              </div>
-            </div>
+    <section className="border-y border-[var(--border)] bg-[var(--surface)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {stats.map((s) => (
+            <AnimatedStat key={s.label} display={s.display} label={s.label} />
           ))}
         </div>
       </div>

@@ -1,107 +1,54 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "Features — Astra Flow", description: "Real-time GPS, AI disruption detection, weather-aware routing, and a unified control tower." };
-const features = [
-  { id: "tracking", title: "Real-Time GPS Tracking", icon: "📍", desc: "Every driver, every second. GPS via browser Geolocation API, Socket.IO transport, Supabase storage.", details: ["10-second ping intervals", "Dead reckoning prediction", "Offline ping buffering in IndexedDB", "Visual distinction between confirmed and predicted positions"] },
-  { id: "disruption", title: "AI Disruption Detection", icon: "🧠", desc: "ML models analyze speed, location, and route compliance in real time.", details: ["Speed drop detection", "Route deviation alerts (>500m)", "Geofence breach detection", "Alert severity: LOW → MEDIUM → HIGH → CRITICAL"] },
-  { id: "weather", title: "Weather-Aware Routing", icon: "🌦️", desc: "Open-Meteo data overlaid on every route segment with risk scores and ETA adjustments.", details: ["Per-segment weather risk scoring", "Automatic ETA adjustment for rain", "Proactive rerouting for severe weather", "Visual weather overlays on map"] },
-  { id: "dashboard", title: "Control Tower Dashboard", icon: "📡", desc: "Unified real-time view — WebSocket-powered, no page refresh needed.", details: ["Real-time driver markers", "Risk-scored driver table with live search", "Alert feed with severity color coding", "System health monitoring"] },
-];
-export default function FeaturesPage() {
-  const otherFeatures = features.slice(1);
+import { MapPin, Route, Brain, Truck, Link2, BellRing } from "lucide-react";
 
+export const metadata: Metadata = { title: "Features \u2014 Astra Flow", description: "Real-time GPS, AI disruption detection, weather-aware routing, and a unified control tower." };
+
+const features = [
+  { icon: MapPin, title: "Real-Time GPS Tracking", desc: "10-second ping intervals with dead reckoning prediction. Offline ping buffering via IndexedDB. Visual distinction between confirmed and predicted positions.", details: ["Browser Geolocation API", "Socket.IO transport", "Supabase + PostGIS storage", "Kalman filter prediction"] },
+  { icon: Route, title: "Route Optimization", desc: "OSRM-powered routing with 30km segment analysis. Automatic deviation detection with 500m threshold and alternate path visualization.", details: ["OSRM route calculation", "30km segment splitting", "Deviation threshold alerts", "Perpendicular distance analysis"] },
+  { icon: Brain, title: "AI Delay Analysis", desc: "Rule engine analyzes speed drops, stop durations, and route compliance in real time with escalating severity levels.", details: ["Speed drop detection", "45-min / 2-hour stop alerts", "Geofence breach detection", "Alert severity: LOW to CRITICAL"] },
+  { icon: Truck, title: "Fleet Management", desc: "Unified driver dashboard with online/offline status tracking, network monitoring, and reconnection logging.", details: ["Driver status tracking", "Network connectivity logging", "Auto status transitions", "Reconnection detection"] },
+  { icon: Link2, title: "Supply Chain Visibility", desc: "End-to-end shipment tracking from origin to destination. Route geometry overlay, segment progress, and ETA calculations.", details: ["Full route visualization", "Segment-level progress", "Dynamic ETA adjustments", "History trail on map"] },
+  { icon: BellRing, title: "Smart Alerts", desc: "Multi-tier alert system with weather integration, traffic checks, and configurable thresholds.", details: ["Weather risk scoring (Open-Meteo)", "Traffic incident detection", "Configurable alert thresholds", "Auto-resolve on recovery"] },
+];
+
+export default function FeaturesPage() {
   return (
     <>
       <Navbar />
-      <main className="page-shell">
-        <section className="section" style={{ borderBottom: "1px solid var(--color-border-base)" }}>
-          <div className="container-lg" style={{ textAlign: "center" }}>
-            <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 800, marginBottom: 20 }}>Everything Your Operations Team Needs</h1>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: 18, maxWidth: 600, margin: "0 auto" }}>Integrated capabilities that transform reactive logistics into proactive intelligence.</p>
+      <main className="pt-24 pb-20">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+              Everything Your Operations Team Needs
+            </h1>
+            <p className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
+              Integrated capabilities that transform reactive logistics into proactive intelligence.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {features.map((f) => (
+              <div key={f.title} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8 hover-lift">
+                <div className="w-12 h-12 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center mb-4">
+                  <f.icon className="w-6 h-6 text-[var(--accent)]" />
+                </div>
+                <h2 className="text-xl font-bold mb-3 text-[var(--text)]">{f.title}</h2>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-6">{f.desc}</p>
+                <div className="space-y-2">
+                  {f.details.map((d) => (
+                    <div key={d} className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+                      <span className="text-[var(--accent)] font-bold">&#8594;</span>
+                      <span>{d}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
-
-        <div className="container-lg" style={{ maxWidth: 1000 }}>
-          {/* CUSTOM GPS TRACKING SECTION */}
-          <section id="tracking" className="section reveal" style={{ borderBottom: "1px solid var(--color-border-base)" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }} className="feat-cols">
-              <div>
-                <div className="gps-icon-wrapper">
-                  📍
-                  <div className="gps-pulse-ring"></div>
-                </div>
-                <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 700, marginBottom: 16 }}>Real-Time GPS Tracking</h2>
-                <p style={{ color: "var(--color-text-secondary)", lineHeight: 1.7, fontSize: 15, marginBottom: 32 }}>
-                  Every driver, every second. High-precision live location updates utilizing native web APIs and advanced predictive algorithms to ensure you never lose sight of a shipment.
-                </p>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <div className="gps-feature-pill">
-                    <span className="gps-feature-pill-icon">🌐</span>
-                    <div className="gps-feature-pill-content">
-                      <span className="gps-feature-pill-name">Browser Geolocation API</span>
-                      <span className="gps-feature-pill-desc">Built-in, no key needed</span>
-                    </div>
-                  </div>
-                  <div className="gps-feature-pill">
-                    <span className="gps-feature-pill-icon">⚡</span>
-                    <div className="gps-feature-pill-content">
-                      <span className="gps-feature-pill-name">Socket.IO</span>
-                      <span className="gps-feature-pill-desc">Realtime transport</span>
-                    </div>
-                  </div>
-                  <div className="gps-feature-pill">
-                    <span className="gps-feature-pill-icon">🐘</span>
-                    <div className="gps-feature-pill-content">
-                      <span className="gps-feature-pill-name">Supabase + PostGIS</span>
-                      <span className="gps-feature-pill-desc">Location storage, 500MB free</span>
-                    </div>
-                  </div>
-                  <div className="gps-feature-pill">
-                    <span className="gps-feature-pill-icon">💾</span>
-                    <div className="gps-feature-pill-content">
-                      <span className="gps-feature-pill-name">IndexedDB</span>
-                      <span className="gps-feature-pill-desc">Offline ping buffering, built-in</span>
-                    </div>
-                  </div>
-                  <div className="gps-feature-pill">
-                    <span className="gps-feature-pill-icon">🧮</span>
-                    <div className="gps-feature-pill-content">
-                      <span className="gps-feature-pill-name">Kalman Filter</span>
-                      <span className="gps-feature-pill-desc">Dead reckoning in pure JS</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card-flat" style={{ position: "sticky", top: 120 }}>
-                <div style={{ fontFamily: "var(--font-data)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-muted)", marginBottom: 16 }}>Key Capabilities</div>
-                <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 12 }}>
-                  <li style={{ display: "flex", gap: 12, fontSize: 14, color: "var(--color-text-secondary)" }}><span style={{ color: "var(--color-primary)", fontWeight: 700 }}>→</span><span>10-second ping intervals</span></li>
-                  <li style={{ display: "flex", gap: 12, fontSize: 14, color: "var(--color-text-secondary)" }}><span style={{ color: "var(--color-primary)", fontWeight: 700 }}>→</span><span>Dead reckoning prediction</span></li>
-                  <li style={{ display: "flex", gap: 12, fontSize: 14, color: "var(--color-text-secondary)" }}><span style={{ color: "var(--color-primary)", fontWeight: 700 }}>→</span><span>Offline ping buffering in IndexedDB</span></li>
-                  <li style={{ display: "flex", gap: 12, fontSize: 14, color: "var(--color-text-secondary)" }}><span style={{ color: "var(--color-primary)", fontWeight: 700 }}>→</span><span>Visual distinction for predicted positions</span></li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* DYNAMIC REMAINING SECTIONS */}
-          {otherFeatures.map((f, i) => (
-            <section key={f.id} id={f.id} className="section reveal" style={{ borderBottom: i < otherFeatures.length - 1 ? "1px solid var(--color-border-base)" : "none" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }} className="feat-cols">
-                <div><div style={{ fontSize: 40, marginBottom: 16 }}>{f.icon}</div><h2 style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 700, marginBottom: 16 }}>{f.title}</h2><p style={{ color: "var(--color-text-secondary)", lineHeight: 1.7, fontSize: 15 }}>{f.desc}</p></div>
-                <div className="card-flat"><div style={{ fontFamily: "var(--font-data)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-muted)", marginBottom: 16 }}>Key Capabilities</div>
-                  <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 12 }}>
-                    {f.details.map((d, j) => (<li key={j} style={{ display: "flex", gap: 12, fontSize: 14, color: "var(--color-text-secondary)" }}><span style={{ color: "var(--color-primary)", fontWeight: 700 }}>→</span><span>{d}</span></li>))}
-                  </ul>
-                </div>
-              </div>
-            </section>
-          ))}
-        </div>
-        <style>{`@media(max-width:768px){.feat-cols{grid-template-columns:1fr !important;}}`}</style>
       </main>
       <Footer />
     </>

@@ -1,23 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import { apiPost, apiGet } from "@/lib/api";
+import { ArrowLeft, Package, Copy, Check, MapPin, ExternalLink, MessageSquare, Send } from "lucide-react";
 
-interface GeoResult {
-  lat: number;
-  lng: number;
-  display_name: string;
-}
-
-interface CreateResult {
-  tracking_id: string;
-  share_token: string;
-  segment_count: number;
-  total_distance_km: number;
-  estimated_arrival: string;
-}
+interface GeoResult { lat: number; lng: number; display_name: string; }
+interface CreateResult { tracking_id: string; share_token: string; segment_count: number; total_distance_km: number; estimated_arrival: string; }
 
 export default function NewShipmentPage() {
   const router = useRouter();
@@ -36,289 +25,154 @@ export default function NewShipmentPage() {
   const originTimer = useRef<NodeJS.Timeout | null>(null);
   const destTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // Auth bypassed
-
-
   const fetchAutocomplete = useCallback(async (query: string, setter: (r: GeoResult[]) => void) => {
-    if (query.length < 3) {
-      setter([]);
-      return;
-    }
+    if (query.length < 3) { setter([]); return; }
     try {
-      const data = await apiGet<{ results: GeoResult[] }>(
-        `/geocode/autocomplete?q=${encodeURIComponent(query)}&limit=5`
-      );
+      const data = await apiGet<{ results: GeoResult[] }>(`/geocode/autocomplete?q=${encodeURIComponent(query)}&limit=5`);
       setter(data.results);
-    } catch {
-      setter([]);
-    }
+    } catch { setter([]); }
   }, []);
 
   function handleOriginChange(value: string) {
-    setOrigin(value);
-    setShowOriginAC(true);
+    setOrigin(value); setShowOriginAC(true);
     if (originTimer.current) clearTimeout(originTimer.current);
     originTimer.current = setTimeout(() => fetchAutocomplete(value, setOriginResults), 500);
   }
 
   function handleDestChange(value: string) {
-    setDestination(value);
-    setShowDestAC(true);
+    setDestination(value); setShowDestAC(true);
     if (destTimer.current) clearTimeout(destTimer.current);
     destTimer.current = setTimeout(() => fetchAutocomplete(value, setDestResults), 500);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!origin || !destination || !driverPhone) {
-      setError("All fields are required.");
-      return;
-    }
-    setLoading(true);
-    setError("");
+    if (!origin || !destination || !driverPhone) { setError("Origin, destination, and phone are required."); return; }
+    setLoading(true); setError("");
     try {
       const data = await apiPost<CreateResult>("/shipment/create", {
-        driver_phone: `+91${driverPhone.trim()}`,
-        driver_name: driverName.trim(),
-        origin: origin.trim(),
-        destination: destination.trim(),
+        driver_phone: `+91${driverPhone.trim()}`, driver_name: driverName.trim(),
+        origin: origin.trim(), destination: destination.trim(),
       });
       setResult(data);
-      
-      // Autonomously pop open WhatsApp immediately after creation
       const link = `${window.location.origin}/driver/${data.share_token}`;
-      const msg = `🚚 Delivery Assignment Update\n\nHello Driver,\n\nYou have been assigned a new delivery task. Please check the shipment details, pickup location, route, and delivery instructions using the secure link below:\n\n${link}\n\nPlease review the task and confirm once you start the trip.\n\nSent by: Dispatch Team, Astra Flow Logistics\nFor support, contact the operations desk.\nThank you and drive safely.`;
+      const msg = `Delivery Assignment\n\nHello Driver,\n\nYou have a new delivery. Open your route:\n${link}\n\nDispatched by Astra Flow`;
       window.open(`https://wa.me/91${driverPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-      
     } catch (err: unknown) {
-      console.error('Full error:', err);
       const msg = err instanceof Error ? err.message : JSON.stringify(err);
-      setError(`API POST failed: ${msg}`);
-    } finally {
-      setLoading(false);
-    }
+      setError(`Failed: ${msg}`);
+    } finally { setLoading(false); }
   }
 
   function getSmsBody() {
     if (!result) return "";
     const link = `${window.location.origin}/driver/${result.share_token}`;
-    return `🚚 Delivery Assignment Update\n\nHello Driver,\n\nYou have been assigned a new delivery task. Please check the shipment details, pickup location, route, and delivery instructions using the secure link below:\n\n${link}\n\nPlease review the task and confirm once you start the trip.\n\nSent by: Dispatch Team, Astra Flow Logistics\nFor support, contact the operations desk.\nThank you and drive safely.`;
+    return `Delivery Assignment\n\nHello Driver,\n\nYou have a new delivery. Open your route:\n${link}\n\nDispatched by Astra Flow`;
   }
 
   function copyLink() {
     if (!result) return;
-    const textToCopy = getSmsBody();
-    
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(textToCopy);
-    } else {
-      const textArea = document.createElement("textarea");
-      textArea.value = textToCopy;
-      document.body.appendChild(textArea);
-      textArea.select();
-      try {
-        document.execCommand('copy');
-      } catch (err) {}
-      document.body.removeChild(textArea);
-    }
-    
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard?.writeText(getSmsBody()).catch(() => {});
+    setCopied(true); setTimeout(() => setCopied(false), 2000);
   }
+
+  const inputCls = "w-full px-4 py-3 rounded-lg border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all placeholder:text-[var(--text-muted)]";
+  const labelCls = "block text-sm font-medium text-[var(--text-secondary)] mb-2";
 
   if (result) {
     const driverLink = `${typeof window !== "undefined" ? window.location.origin : ""}/driver/${result.share_token}`;
     return (
-      <div className="page-container">
-        <div className="page-header">
-          <h1>Shipment Created</h1>
-          <button className="btn btn-sm" onClick={() => router.push("/dashboard")}>
-            ← Back to Dashboard
+      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
+        <div className="max-w-lg w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center"><Check className="w-5 h-5 text-emerald-400" /></div>
+            <div><h1 className="text-lg font-bold text-[var(--text)]">Shipment Created</h1><p className="text-xs text-[var(--text-muted)]">Ready for dispatch</p></div>
+          </div>
+          <div className="space-y-3 mb-6">
+            {[["Tracking ID", result.tracking_id], ["Distance", `${result.total_distance_km} km`], ["Segments", result.segment_count], ["ETA", new Date(result.estimated_arrival).toLocaleString("en-IN")]].map(([l, v]) => (
+              <div key={String(l)} className="flex justify-between py-2 border-b border-[var(--border)]">
+                <span className="text-xs text-[var(--text-muted)]">{l}</span>
+                <span className="text-sm font-semibold text-[var(--text)] font-mono">{String(v)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mb-4">
+            <label className={labelCls}>Driver Tracking Link</label>
+            <div className="flex gap-2">
+              <input className={inputCls} value={driverLink} readOnly onClick={(e) => (e.target as HTMLInputElement).select()} />
+              <button onClick={copyLink} className="px-3 rounded-lg border border-[var(--border)] hover:bg-[var(--surface-elevated)] transition-colors flex-shrink-0">
+                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-[var(--text-secondary)]" />}
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <a href={`sms:${driverPhone}?body=${encodeURIComponent(getSmsBody())}`} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-[var(--border)] text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)] transition-colors">
+              <MessageSquare className="w-3.5 h-3.5" /> SMS
+            </a>
+            <a href={`https://wa.me/${driverPhone.replace(/\D/g, '')}?text=${encodeURIComponent(getSmsBody())}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors">
+              <Send className="w-3.5 h-3.5" /> WhatsApp
+            </a>
+            <button onClick={() => router.push(`/track/${result.tracking_id}`)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-[var(--border)] text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)] transition-colors">
+              <MapPin className="w-3.5 h-3.5" /> Map
+            </button>
+          </div>
+          <button onClick={() => router.push("/dashboard")} className="w-full py-3 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm transition-colors">
+            Back to Dashboard
           </button>
-        </div>
-        <div className="result-card">
-          <h2>✓ Shipment Ready</h2>
-          <div className="result-row">
-            <span className="result-label">Tracking ID</span>
-            <span className="result-value">{result.tracking_id}</span>
-          </div>
-          <div className="result-row">
-            <span className="result-label">Total Distance</span>
-            <span className="result-value">{result.total_distance_km} km</span>
-          </div>
-          <div className="result-row">
-            <span className="result-label">Segments</span>
-            <span className="result-value">{result.segment_count}</span>
-          </div>
-          <div className="result-row">
-            <span className="result-label">Estimated Arrival</span>
-            <span className="result-value">
-              {new Date(result.estimated_arrival).toLocaleString("en-IN")}
-            </span>
-          </div>
-
-          <div style={{ marginTop: "20px" }}>
-            <label className="form-label">Driver Tracking Link</label>
-            <div className="copy-link-group">
-              <input
-                className="form-input"
-                value={driverLink}
-                readOnly
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-              />
-              <button className="btn btn-primary" onClick={copyLink} style={{ whiteSpace: "nowrap" }}>
-                {copied ? "Copied!" : "Copy Message"}
-              </button>
-              <a 
-                href={`sms:${driverPhone}?body=${encodeURIComponent(getSmsBody())}`}
-                className="btn" 
-                style={{ background: "var(--border)", color: "#fff", textDecoration: "none", whiteSpace: "nowrap", padding: "0 16px", display: "flex", alignItems: "center" }}
-              >
-                Send SMS
-              </a>
-              <a 
-                href={`https://wa.me/${driverPhone.replace(/\D/g, '')}?text=${encodeURIComponent(getSmsBody())}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn" 
-                style={{ background: "#25D366", color: "#fff", textDecoration: "none", whiteSpace: "nowrap", padding: "0 16px", display: "flex", alignItems: "center", marginLeft: "8px" }}
-              >
-                Send via WhatsApp
-              </a>
-            </div>
-            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", marginBottom: "16px" }}>
-              Send this link to the driver. They open it on their phone to start tracking.
-            </p>
-            <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "center" }}>
-              <button className="btn btn-primary" style={{ padding: "8px 24px", minWidth: "200px" }} onClick={() => router.push(`/track/${result.tracking_id}`)}>
-                View on Map
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>Create New Shipment</h1>
-        <button className="btn btn-sm" onClick={() => router.push("/dashboard")}>
-          ← Back
-        </button>
-      </div>
-
-      <div className="card" style={{ maxWidth: "480px" }}>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="driver-name">Driver Name</label>
-            <input
-              id="driver-name"
-              className="form-input"
-              type="text"
-              value={driverName}
-              onChange={(e) => setDriverName(e.target.value)}
-              placeholder="e.g. Rajesh Kumar"
-            />
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
+      <div className="max-w-2xl w-full">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center"><Package className="w-5 h-5 text-[var(--accent)]" /></div>
+            <div><h1 className="text-xl font-bold text-[var(--text)]">Create Shipment</h1><p className="text-xs text-[var(--text-muted)]">Dispatch a new tracked delivery</p></div>
           </div>
+          <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"><ArrowLeft className="w-4 h-4" /> Back</button>
+        </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="driver-phone">Driver Phone Number</label>
-            <div className="phone-input-group">
-              <span className="phone-prefix">+91</span>
-              <input
-                id="driver-phone"
-                className="form-input"
-                type="tel"
-                value={driverPhone}
-                onChange={(e) => setDriverPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                placeholder="9876543210"
-                required
-                maxLength={10}
-              />
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div><label className={labelCls} htmlFor="driver-name">Driver Name</label><input id="driver-name" className={inputCls} value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder="e.g. Rajesh Kumar" /></div>
+              <div><label className={labelCls} htmlFor="driver-phone">Phone Number</label>
+                <div className="flex"><span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-[var(--border)] bg-[var(--surface-elevated)] text-sm text-[var(--text-muted)]">+91</span>
+                <input id="driver-phone" className={`${inputCls} rounded-l-none`} type="tel" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="9876543210" required maxLength={10} /></div>
+              </div>
             </div>
-          </div>
 
-          <div className="form-group" style={{ position: "relative" }}>
-            <label className="form-label" htmlFor="origin">Origin</label>
-            <input
-              id="origin"
-              className="form-input"
-              type="text"
-              value={origin}
-              onChange={(e) => handleOriginChange(e.target.value)}
-              onBlur={() => setTimeout(() => setShowOriginAC(false), 200)}
-              onFocus={() => originResults.length > 0 && setShowOriginAC(true)}
-              placeholder="e.g. Mumbai, Maharashtra"
-              required
-            />
-            {showOriginAC && originResults.length > 0 && (
-              <div className="autocomplete-list">
-                {originResults.map((r, i) => (
-                  <div
-                    key={i}
-                    className="autocomplete-item"
-                    onMouseDown={() => {
-                      setOrigin(r.display_name);
-                      setShowOriginAC(false);
-                      setOriginResults([]);
-                    }}
-                  >
-                    {r.display_name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+            <div className="relative"><label className={labelCls} htmlFor="origin">Origin</label>
+              <input id="origin" className={inputCls} value={origin} onChange={(e) => handleOriginChange(e.target.value)} onBlur={() => setTimeout(() => setShowOriginAC(false), 200)} onFocus={() => originResults.length > 0 && setShowOriginAC(true)} placeholder="e.g. Mumbai, Maharashtra" required />
+              {showOriginAC && originResults.length > 0 && (
+                <div className="absolute z-20 mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-lg overflow-hidden">
+                  {originResults.map((r, i) => (<div key={i} className="px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)] cursor-pointer transition-colors" onMouseDown={() => { setOrigin(r.display_name); setShowOriginAC(false); setOriginResults([]); }}>{r.display_name}</div>))}
+                </div>
+              )}
+            </div>
 
-          <div className="form-group" style={{ position: "relative" }}>
-            <label className="form-label" htmlFor="destination">Destination</label>
-            <input
-              id="destination"
-              className="form-input"
-              type="text"
-              value={destination}
-              onChange={(e) => handleDestChange(e.target.value)}
-              onBlur={() => setTimeout(() => setShowDestAC(false), 200)}
-              onFocus={() => destResults.length > 0 && setShowDestAC(true)}
-              placeholder="e.g. Delhi, India"
-              required
-            />
-            {showDestAC && destResults.length > 0 && (
-              <div className="autocomplete-list">
-                {destResults.map((r, i) => (
-                  <div
-                    key={i}
-                    className="autocomplete-item"
-                    onMouseDown={() => {
-                      setDestination(r.display_name);
-                      setShowDestAC(false);
-                      setDestResults([]);
-                    }}
-                  >
-                    {r.display_name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+            <div className="relative"><label className={labelCls} htmlFor="destination">Destination</label>
+              <input id="destination" className={inputCls} value={destination} onChange={(e) => handleDestChange(e.target.value)} onBlur={() => setTimeout(() => setShowDestAC(false), 200)} onFocus={() => destResults.length > 0 && setShowDestAC(true)} placeholder="e.g. Delhi, India" required />
+              {showDestAC && destResults.length > 0 && (
+                <div className="absolute z-20 mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-lg overflow-hidden">
+                  {destResults.map((r, i) => (<div key={i} className="px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)] cursor-pointer transition-colors" onMouseDown={() => { setDestination(r.display_name); setShowDestAC(false); setDestResults([]); }}>{r.display_name}</div>))}
+                </div>
+              )}
+            </div>
 
-          {error && (
-            <p style={{ fontSize: "13px", color: "var(--red)", marginBottom: "12px" }}>
-              {error}
-            </p>
-          )}
+            {error && <p className="text-sm text-red-400 bg-red-500/10 rounded-lg px-4 py-2">{error}</p>}
 
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-            style={{ width: "100%", justifyContent: "center" }}
-          >
-            {loading ? "Creating shipment…" : "Create Shipment"}
-          </button>
-        </form>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => router.push("/dashboard")} className="flex-1 py-3 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] font-semibold text-sm hover:bg-[var(--surface-elevated)] transition-colors">Cancel</button>
+              <button type="submit" disabled={loading} className="flex-1 py-3 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold text-sm transition-colors">
+                {loading ? "Creating..." : "Create Shipment"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
