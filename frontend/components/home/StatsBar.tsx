@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const stats = [
-  { value: 10000000, label: "Shipments Tracked", suffix: "+", display: "10M+" },
+  { value: 20, label: "Shipments Tracked", suffix: "+", display: "20+" },
   { value: 98.7, label: "On-Time Rate", suffix: "%", display: "98.7%" },
   { value: 140, label: "Countries", suffix: "+", display: "140+" },
   { value: 2, label: "Detection Latency", suffix: "s", prefix: "<", display: "<2s" },
