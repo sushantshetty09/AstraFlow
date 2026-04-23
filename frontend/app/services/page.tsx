@@ -16,7 +16,7 @@ const plans = [
   },
   {
     name: "Professional",
-    price: "$99/mo",
+    price: "Free",
     desc: "For growing operations that need AI-powered intelligence.",
     features: ["Unlimited shipments", "AI delay analysis", "Weather & traffic alerts", "Route optimization", "Astra AI assistant", "Priority support", "API access"],
     cta: "Start Free Trial",
@@ -24,7 +24,7 @@ const plans = [
   },
   {
     name: "Enterprise",
-    price: "Custom",
+    price: "Free",
     desc: "For large-scale supply chain operations with custom needs.",
     features: ["Everything in Professional", "Custom integrations", "Dedicated account manager", "SLA guarantees", "On-premise deployment", "SOC 2 compliance", "24/7 support"],
     cta: "Contact Sales",
@@ -50,11 +50,10 @@ export default function ServicesPage() {
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-xl border p-8 flex flex-col ${
-                  plan.highlighted
+                className={`rounded-xl border p-8 flex flex-col ${plan.highlighted
                     ? "border-[var(--accent)] bg-[var(--surface)] ring-1 ring-[var(--accent)]"
                     : "border-[var(--border)] bg-[var(--surface)]"
-                }`}
+                  }`}
               >
                 {plan.highlighted && (
                   <div className="text-xs font-semibold text-[var(--accent)] uppercase tracking-wider mb-4">
@@ -76,11 +75,10 @@ export default function ServicesPage() {
                 </ul>
                 <Link
                   href="/contact"
-                  className={`text-center py-3 rounded-lg font-semibold text-sm transition-colors ${
-                    plan.highlighted
+                  className={`text-center py-3 rounded-lg font-semibold text-sm transition-colors ${plan.highlighted
                       ? "bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white"
                       : "border border-[var(--border)] hover:bg-[var(--surface-elevated)] text-[var(--text)]"
-                  }`}
+                    }`}
                 >
                   {plan.cta}
                 </Link>

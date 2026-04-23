@@ -1,91 +1,129 @@
-# Astra Flow — Supply Chain Resilience Platform
+# 🌐 Astra Flow — AI-Powered Supply Chain Intelligence
 
-Astra Flow is a complete, full-stack logistics and supply-chain management platform featuring real-time driver tracking, autonomous notifications, map rendering, and robust offline capabilities.
+![Astra Flow Banner](https://img.shields.io/badge/Astra%20Flow-Logistics%20%26%20Supply%20Chain-0f172a?style=for-the-badge&logo=next.js)
 
-## Architecture & Tech Stack
+**Astra Flow** is a next-generation, enterprise-grade logistics and supply chain management platform. Built for modern hackathons and real-world deployment, it leverages live GPS tracking, real-time WebSocket communication, and AI-driven anomaly detection to provide absolute visibility over fleet operations.
 
-Astra Flow is built on a microservices architecture with three main local services:
+---
 
-1. **Frontend (Next.js 14)**
-   - Location: `/frontend`
-   - Framework: React, Next.js (App Router)
-   - Real-time Client: `socket.io-client`
-   - Features: Real-time map rendering, shipment creation, tracking URL generation, and dynamic Next.js Proxy (`next.config.mjs`) to bypass mobile tunnel mixed-content restrictions.
+## ✨ Key Features
 
-2. **Backend API (FastAPI / Python)**
-   - Location: `/api`
-   - Framework: FastAPI, Uvicorn
-   - Database Client: Supabase Python Client
-   - Features: Handles shipment CRUD operations, external geocoding, authentication bypassing for mobile testing, and background rule engine tasking.
+*   **📍 Live GPS Tracking:** Real-time driver location tracking utilizing the browser's native `navigator.geolocation` APIs and websockets to broadcast live coordinates to the command center.
+*   **🗺️ Interactive Map Dashboard:** A seamless, dark-mode Control Tower powered by Leaflet. Watch your fleet move in real-time, view active routes, and identify bottlenecks instantly.
+*   **🤖 AI Anomaly Detection:** Powered by Google Gemini. The system intelligently detects route deviations, unexpected delays, and potential supply chain disruptions, bubbling them up as critical alerts.
+*   **⚡ Real-Time Sync:** A dedicated Node.js Socket.IO server acts as a relay, ensuring sub-second latency between the driver's mobile device and the central dashboard.
+*   **📱 Mobile-First Driver App:** Drivers receive a lightweight, seamless mobile tracking link via WhatsApp/SMS that instantly syncs their position without requiring them to download a native app.
+*   **☁️ Cloud-Native Deployment:** Fully configured for 1-click deployments on Render via `render.yaml` Blueprints. 
 
-3. **Real-time Server (Node.js)**
-   - Location: `/ws-server`
-   - Framework: Node.js, Socket.io
-   - Features: Facilitates real-time, low-latency live GPS pings from the driver's mobile browser to the operations dashboard.
+---
 
-4. **Database (Supabase)**
-   - Hosted PostgreSQL database storing Shipments, Segments, Location History, and Alerts.
+## 🛠️ Technology Stack
 
-## Getting Started
+Astra Flow utilizes a modern, decoupled microservices architecture:
 
-### 1. Prerequisites
-- **Node.js**: v18+ (verified on v24.12)
-- **Python**: 3.12+ 
-- **Package Managers**: `npm`, `pip`
+### 1. Frontend (Control Tower & Driver App)
+*   **Framework:** [Next.js 14](https://nextjs.org/) (App Router)
+*   **Styling:** Tailwind CSS + Vanilla CSS Modules
+*   **Mapping:** Leaflet & React-Leaflet
+*   **Icons:** Lucide React
 
-### 2. Environment Setup
+### 2. Backend (Core API & AI Engine)
+*   **Framework:** [FastAPI](https://fastapi.tiangolo.com/) (Python)
+*   **AI Integration:** Google Gemini API
+*   **Database:** Supabase (PostgreSQL)
 
-**Frontend (`/frontend/.env.local`)**
-```env
-NEXT_PUBLIC_SUPABASE_URL="https://ietalksfcjixckkfzruo.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
-NEXT_PUBLIC_API_URL="/api"
-NEXT_PUBLIC_WS_URL=""
+### 3. WebSocket Server (Real-Time Relay)
+*   **Environment:** Node.js
+*   **Library:** Socket.IO
+*   **State:** Redis/In-memory caching for live coordinates
+
+---
+
+## 🚀 Getting Started (Local Development)
+
+### Prerequisites
+*   Node.js (v18+)
+*   Python (3.10+)
+*   Supabase Account
+*   Google Gemini API Key
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/Astra--flow.git
+cd Astra--flow
 ```
-*(Note: API and WS URLs are set to relative paths to seamlessly support localtunnel proxying via Next.js rewrites).*
 
-**Backend (`/api/.env`)**
-Required environment variables for Supabase access and internal routing.
-
-### 3. Running Locally
-
-You need to spin up all 3 services concurrently. 
-
-**Terminal 1: Start the Fast API Backend**
+### 2. Setup the FastAPI Backend
 ```bash
 cd api
-python -m pip install -r requirements.txt # (fastapi, uvicorn, supabase, httpx, python-dotenv)
-python -m uvicorn main:app --host 0.0.0.0 --port 8000
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+pip install -r requirements.txt
+```
+Create an `api/.env` file:
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_KEY=your_supabase_service_key
+```
+Run the backend:
+```bash
+uvicorn main:app --reload --port 8000
 ```
 
-**Terminal 2: Start the WebSocket Server**
+### 3. Setup the WebSocket Server
 ```bash
 cd ws-server
 npm install
-node index.js
+```
+Create a `ws-server/.env` file with your Supabase credentials.
+Run the relay server:
+```bash
+npm start
 ```
 
-**Terminal 3: Start the Next.js Frontend**
+### 4. Setup the Next.js Frontend
 ```bash
 cd frontend
 npm install
+```
+Create a `frontend/.env.local` file:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_WS_URL=http://localhost:3001
+NEXT_PUBLIC_GEMINI_KEY=your_gemini_api_key
+```
+Start the Next.js development server:
+```bash
 npm run dev
 ```
 
-### 4. Setting up a Public Tunnel (for Mobile GPS Testing)
-Mobile browsers strictly require HTTPS to allow `navigator.geolocation` access. Since Astra Flow is designed for mobile tracking, you must expose it via a secure tunnel.
+Visit `http://localhost:3000` to view the application!
 
-```bash
-# In the project root, start a permanent background tunnel:
-npx localtunnel --port 3000 --subdomain astra-tracker
-```
-Access the application globally via: `https://astra-tracker.loca.lt/dashboard`
+---
 
-*(The Next.js `next.config.mjs` automatically handles proxying `/api` and `/socket.io` to your internal Python and Node servers to prevent Mixed Content security errors on mobile devices.)*
+## ☁️ Deployment (Render)
 
-## Key Workflows
+Astra Flow is perfectly configured for a 1-click deployment on [Render](https://render.com/) using the included `render.yaml` Blueprint.
 
-1. **Shipment Creation**: Dispatcher enters origin, destination, and driver phone via the Dashboard.
-2. **Autonomous Notification**: The system generates a secure tracking Token and deep-links it via WhatsApp/SMS to the driver's phone.
-3. **Live Tracking**: The driver opens the link on their mobile device (via `https://astra-tracker.loca.lt`). The browser initiates high-frequency GPS pinging over WebSockets to the Node server.
-4. **Dashboard View**: Dispatchers see real-time positional updates plotted dynamically onto the dashboard map.
+1.  Connect your GitHub repository to Render.
+2.  Click **New +** -> **Blueprint**.
+3.  Select this repository. Render will automatically detect the 3 microservices.
+4.  Provide the requested environment variables (Supabase Keys, Gemini Keys) in the Render dashboard.
+5.  Deploy!
+
+---
+
+## 📸 Screenshots
+
+*(Add screenshots of your Dashboard, Map View, and Mobile Driver Tracking UI here)*
+
+---
+
+## 🤝 Contributing
+Contributions are always welcome! Feel free to open a Pull Request or submit an Issue if you find a bug.
+
+---
+
+*Built with precision and speed for the modern supply chain.*
